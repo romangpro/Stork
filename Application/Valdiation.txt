@@ -1,0 +1,15 @@
+﻿Validation
+==================
+
+WebAPI - DTO request
+- possibly handle by MediatR
+
+Application 
+- received Request/Command
+- Validator on the Request/Command
+- 
+
+
+
+
+//to enforce integrity and invariants.

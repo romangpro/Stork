@@ -1,0 +1,105 @@
+﻿https://github.com/zkavtaskin/Domain-Driven-Design-Example
+
+Overview
+------------
+
+DDD/CleanArchitecture is used so that each layer can be tested without needing dependencies. 
+Domain - business logic, enforces invariants of Entities (can never be 'corrupt')
+Application - Use cases and workflow.. call Entities and Domain services. 
+Infrastructure - external dependencies, email, database etc
+
+ValueObject - no identity, immutable. CartItem, Address
+Entity - unique, identifiable by id, even if values the same. My Cart with Book123 is different than your Cart with Book123.
+Aggregate - Grouping of dependent entities, that are loaded and saved as a whole. All actions within aggregate are synchronous
+
+POCO - JavaBeans concept of lightweight classes that dont subclass from 'EntityObject' or 'ActiveRecord'
+DTO - bucket of data, ie JSON, used to transfer from one layer to another.
+Command - user triggered action. LoginCommand
+Event - output of Domain state machine - LoginSuccessEvent, LoginFailEvent
+
+
+Clean Architecture Approach
+===================
+Issues addressed:
+- database agnostic
+- database source control (migrations)
+- testability of controllers and business logic
+- caching of the user info, leagues, games etc
+- security, and extensibility
+
+
+Domain
+- Entities
+- Commands
+- Interfaces for Repositories/Factories
+- Validation??
+
+Application
+- Services/UseCases - Validation
+
+Infrastructure
+- Repositories.. ie InMemoryCache, MySQL
+
+WebAPI
+- lightweight controllers
+
+
+Solution contains things that were not in VE Avalonia:
+-----------------------------------------------------
+- Create/Register/Edit user
+- Create/Edit League/Conference/Division
+
+
+Validation
+=========================
+A command/request (write/read), is just that.. a request. it has no invariants. Its up to the Application layer to accept and validate it.
+Different patterns/methods. Needs to be synchronous, and can be reusable with UI/App layer (return list of string/errors) 
+
+
+General Workflow (GetGames)
+=====================
+UI user filters Season/League etc
+authenticated WebAPI Controller GetGames(GetGamesRequest)
+Application GamesService.GetGames(User, GetGamesRequest)
+Fetch Games from Local Cache, and if expired, make API call to server side -> Repository
+Based on User Permissions, show which ones you can upload/download (always show content??)
+
+
+VideoExpress UseCases 
+=====================
+A. [Admin] Create "Sports" (League, Conference, Division, Team, Game) etc  (Admin)
+- DB/Repo must already be seeded with Admin
+- Domain enforces unique leagues, division names etc. Seasons cant overlap. 
+- updating Conference with new Division list creates new version (for that season)
+- updating Division with new team list creates new version (for that season)
+- 
+
+B. [Anon] CreateUser
+- unique username/email etc
+- can reset password, login, logout
+
+C. [User] GetUserInfo
+- get all the uploads and downloads (finished/cancelled, whatever) - need to have bit to "hide""
+
+D. [User] GetLeagues
+
+
+E. [User] GetGames/Content
+
+
+F. [User] Download Content for Game
+
+G. [User] Upload Content for Game
+(depending on user permission, might only be able to upload Home angle etc)
+
+???
+H. [User] Can change permission, grant access to other users for content (ie by User, Team, League???)
+
+TIPS
+=================
+- prefer ValueObject to Entities
+- YAGNI - dont model everything, just what you need
+- ORM/EntityFramework db first is convenient but leads to anaemic and misses point of rich testable domain
+- avoid excessive primitives: Email vs string
+- Entity must satisfy invariant - "what is it to be xxx"
+- Aggreggate roots must enforce dependent entity boundaries - no 0 quantity items or 0 orders on receipt
